@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HACKER ENTITY</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000000 !important;
+      overflow: hidden;
+      touch-action: none;
+      font-family: 'Courier New', Courier, monospace;
+      user-select: none;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .hacker-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .top-bar {
+      color: #ff0033;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px #ff0033;
+    }
+
+    .blink {
+      animation: blinkAnim 0.6s infinite alternate;
+    }
+
+    @keyframes blinkAnim {
+      0% { opacity: 0.2; }
+      100% { opacity: 1; }
+    }
+
+    .scary-text {
+      margin-bottom: 30px;
+      margin-left: 10px;
+    }
+
+    .scary-text h1 {
+      color: #ff0033;
+      font-size: 28px;
+      margin: 0;
+      letter-spacing: 4px;
+      font-weight: 900;
+      text-shadow: 0 0 10px #ff0033, 0 0 20px #ff0033;
+    }
+
+    .scary-text p {
+      color: #00ff66;
+      font-size: 11px;
+      margin-top: 5px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 5px #00ff66;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hacker-overlay">
+    <div class="top-bar">
+      <span class="blink">[CRITICAL_ERROR]</span> SYSTEM_OVERRIDE_ACTIVE // PORT: 666
+    </div>
+    <div class="scary-text">
+      <h1>SYSTEM INTRUSION</h1>
+      <p>&gt; SKELETON_ENTITY_LEAKED_INTO_CORE...</p>
+    </div>
+  </div>
+
+  <canvas id="c"></canvas>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+
+    let W, H, dpr;
+
+    function resize() {
+      dpr = window.devicePixelRatio || 1;
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const matrixChars = "01010101☠☠☠010101SYS_KILL_999_ERR_FATAL_HACK_OVERRIDE";
+    const fontSize = 12;
+    const columns = Math.floor(W / fontSize);
+    const drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = "rgba(0, 255, 102, 0.25)";
+      ctx.font = fontSize + "px monospace";
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > H && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    const N = 45;
+    const L = 10;
+    const S = Array.from({length: N}, () => ({x: W/2, y: H/2, a: 0}));
+    const T = {x: W/2, y: H/2};
+
+    const move = e => {
+      T.x = (e.touches ? e.touches[0] : e).clientX;
+      T.y = (e.touches ? e.touches[0] : e).clientY;
+    };
+    window.onmousemove = window.ontouchmove = window.ontouchstart = move;
+
+    function drawHorrorLeg(p, angle, side, isFront) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(angle + side * 1.4);
+      
+      ctx.strokeStyle = '#ff0033';
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 10;
+      ctx.lineWidth = 2;
+      
+      let upper = isFront ? 22 : 28;
+      let lower = isFront ? 18 : 22;
+      
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(upper, side * 16);
+      ctx.lineTo(upper + lower, side * 4);
+      ctx.stroke();
+
+      ctx.translate(upper + lower, side * 4);
+      ctx.lineWidth = 1.5;
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(12, i * 4 + side * 3);
+        ctx.stroke();
+      }
+      
+      ctx.restore();
+    }
+
+    function loop() {
+      drawMatrix();
+      
+      let head = S[0];
+      let dx = T.x - head.x;
+      let dy = T.y - head.y;
+      head.a = Math.atan2(dy, dx);
+      head.x += dx * 0.09;
+      head.y += dy * 0.09;
+
+      for (let i = 1; i < N; i++) {
+        let prev = S[i-1];
+        let curr = S[i];
+        curr.a = Math.atan2(prev.y - curr.y, prev.x - curr.x);
+        curr.x = prev.x - Math.cos(curr.a) * L;
+        curr.y = prev.y - Math.sin(curr.a) * L;
+      }
+
+      ctx.save();
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 20;
+      ctx.strokeStyle = 'rgba(255, 0, 51, 0.4)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(S[0].x, S[0].y);
+      for (let i = 1; i < N; i++) {
+        ctx.lineTo(S[i].x, S[i].y);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.save();
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 15;
+      
+      for (let i = N - 1; i >= 0; i--) {
+        let p = S[i];
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.a);
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.fillStyle = '#ffffff';
+        ctx.lineWidth = 2;
+
+        if (i === 0) {
+          ctx.beginPath();
+          ctx.moveTo(26, 0);
+          ctx.lineTo(4, -12);
+          ctx.lineTo(-12, -8);
+          ctx.lineTo(-12, 8);
+          ctx.lineTo(4, 12);
+          ctx.closePath();
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(22, -4); ctx.lineTo(28, -2);
+          ctx.moveTo(22, 4);  ctx.lineTo(28, 2);
+          ctx.stroke();
+
+          ctx.fillStyle = '#ff0033';
+          ctx.shadowColor = '#ff0033';
+          ctx.shadowBlur = 25;
+          ctx.beginPath();
+          ctx.arc(8, -4, 3, 0, Math.PI * 2);
+          ctx.arc(8, 4, 3, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.arc(0, 0, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (i > 1 && i < 32) {
+            let ribLen = Math.sin((i - 1) / 31 * Math.PI) * 22 + 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -ribLen);
+            ctx.lineTo(4, 0);
+            ctx.lineTo(0, ribLen);
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+
+        if (i === 6) {
+          drawHorrorLeg(p, p.a, 1, true);
+          drawHorrorLeg(p, p.a, -1, true);
+        }
+        if (i === 20) {
+          drawHorrorLeg(p, p.a, 1, false);
+          drawHorrorLeg(p, p.a, -1, false);
+        }
+      }
+      
+      ctx.restore();
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>
